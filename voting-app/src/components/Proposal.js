@@ -12,7 +12,7 @@ import Col from 'react-bootstrap/Col'
 
 import { Clock, ExclamationCircle } from 'react-bootstrap-icons'
 
-const Proposal = ({ proposal, id }) =>
+const Proposal = ({ proposal }) =>
 {
     // convert bytes32 to string
     const name = Web3.utils.hexToUtf8(proposal.name);
@@ -27,7 +27,7 @@ const Proposal = ({ proposal, id }) =>
     {
         try
         {
-            await contract.methods.vote(id, choice).send({ from: currentAccount });
+            await contract.methods.vote(proposal.id, choice).send({ from: currentAccount });
         }
         catch (e)
         {
@@ -39,7 +39,7 @@ const Proposal = ({ proposal, id }) =>
     {
         try
         {
-            await contract.methods.close(id).send({ from: currentAccount });
+            await contract.methods.close(proposal.id).send({ from: currentAccount });
         }
         catch (e)
         {
@@ -47,6 +47,7 @@ const Proposal = ({ proposal, id }) =>
         }
     }
 
+    // NOTE: Web3 weirdly casts uint256 as String
     return (
         <Card style={{ width: '18rem' }} bg={ended ? 'dark' : ''} text={ended ? 'white' : ''} className="m-3">
             <Card.Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -62,14 +63,17 @@ const Proposal = ({ proposal, id }) =>
                     Vote count: {proposal.voteCount}
                 </Card.Text>
 
-                {information.userVotes.includes(id) ? (
-                    <Button variant="secondary" size="lg" block disabled>VOTED !</Button>
-                ) : (
-                    <>
-                        <LoadingButton variant="outline-success" action={vote} parameters="1" block>Yes !</LoadingButton>
-                        <LoadingButton variant="outline-danger" action={vote} parameters="2" block>No !</LoadingButton>
-                    </>
-                )}
+                {ended
+                    ? <></>
+                    : (information.userVotes.includes(String(proposal.id))
+                        ? (<Button variant="secondary" size="lg" block disabled>VOTED !</Button>)
+                        : (
+                            <>
+                                <LoadingButton variant="outline-success" action={vote} parameters="1" block>Yes !</LoadingButton>
+                                <LoadingButton variant="outline-danger" action={vote} parameters="2" block>No !</LoadingButton>
+                            </>
+                        )
+                    )}
             </Card.Body>
             <Card.Footer>
                 <Container className="p-0" fluid>

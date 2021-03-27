@@ -29,7 +29,7 @@ const ModalAction = ({ state, handleClose, action }) =>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>Close</Button>
-                    <LoadingButton variant="primary" action={action} parameters={{ name, endIn }} disableState={name.trim() === ''}>Create</LoadingButton>
+                    <LoadingButton variant="primary" action={action} parameters={{ name, endIn }} disableState={name.trim() === '' || endIn < 1}>Create</LoadingButton>
                 </Modal.Footer>
             </Modal>
         </>

@@ -87,6 +87,7 @@ contract Voting
     function vote(uint256 _proposal, Vote _vote) proposalOpened(_proposal) public
     {
         require(voted[_proposal][msg.sender] == Vote.UNDEFINED, "Already voted");
+        require(_vote == Vote.YES || _vote == Vote.NO, "Invalid vote");
         
         voted[_proposal][msg.sender] = _vote;
         userVotes[msg.sender].push(_proposal);

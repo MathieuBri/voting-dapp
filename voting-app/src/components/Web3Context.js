@@ -27,8 +27,7 @@ const Web3ContextProvider = (props) =>
         }
         else
         {
-            // display toast
-            console.warn('No ethereum');
+            console.warn('No ethereum detected');
         }
     }
 
@@ -56,7 +55,6 @@ const Web3ContextProvider = (props) =>
             {
                 if (!error)
                 {
-                    // add new proposal to state
                     setInformation(prevState => ({
                         proposals: [...prevState.proposals, result.returnValues.proposal],
                         userVotes: prevState.userVotes
@@ -69,8 +67,28 @@ const Web3ContextProvider = (props) =>
             {
                 if (!error)
                 {
-                    console.log(result);
-                    //setInformation(prevState => )
+                    setInformation(prevState => ({
+                        proposals: prevState.proposals,
+                        userVotes: [...prevState.userVotes, result.returnValues.proposal]
+                    }));
+                }
+            });
+
+            // handle close proposal
+            voting.events.Close((error, result) =>
+            {
+                if (!error)
+                {
+                    // add new proposal to state
+                    setInformation(prevState =>
+                    {
+                        let proposals = [...prevState.proposals];
+                        let proposal = { ...proposals[result.returnValues.proposal], closed: true };
+
+                        proposals[result.returnValues.proposal] = proposal;
+
+                        return { proposals: proposals, userVotes: prevState.userVotes };
+                    });
                 }
             });
         }
