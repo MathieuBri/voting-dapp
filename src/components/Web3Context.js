@@ -50,45 +50,35 @@ const Web3ContextProvider = (props) =>
             let info = await voting.methods.getProposalsAndUserVotes().call();
             setInformation({ proposals: info[0], userVotes: info[1] });
 
-            // handle new proposal
-            voting.events.CreateProposal((error, result) =>
+            voting.events.allEvents({ fromBlock: 'latest' }, (error, event) =>
             {
-                if (!error)
+                if (error) return;
+
+                switch (event.event)
                 {
-                    setInformation(prevState => ({
-                        proposals: [...prevState.proposals, result.returnValues.proposal],
-                        userVotes: prevState.userVotes
-                    }));
-                }
-            });
+                    case 'CreateProposal': // handle new proposal
+                        setInformation(prevState => ({
+                            proposals: [...prevState.proposals, event.returnValues.proposal],
+                            userVotes: prevState.userVotes
+                        }));
+                        break;
+                    case 'UserVote': // handle new vote
+                        setInformation(prevState => ({
+                            proposals: prevState.proposals,
+                            userVotes: [...prevState.userVotes, event.returnValues.proposal]
+                        }));
+                        break;
+                    case 'Close': // handle close proposal
+                        setInformation(prevState =>
+                        {
+                            let proposals = [...prevState.proposals];
+                            let proposal = { ...proposals[event.returnValues.proposal], closed: true };
 
-            // handle new vote
-            voting.events.UserVote((error, result) =>
-            {
-                if (!error)
-                {
-                    setInformation(prevState => ({
-                        proposals: prevState.proposals,
-                        userVotes: [...prevState.userVotes, result.returnValues.proposal]
-                    }));
-                }
-            });
+                            proposals[event.returnValues.proposal] = proposal;
 
-            // handle close proposal
-            voting.events.Close((error, result) =>
-            {
-                if (!error)
-                {
-                    // add new proposal to state
-                    setInformation(prevState =>
-                    {
-                        let proposals = [...prevState.proposals];
-                        let proposal = { ...proposals[result.returnValues.proposal], closed: true };
-
-                        proposals[result.returnValues.proposal] = proposal;
-
-                        return { proposals: proposals, userVotes: prevState.userVotes };
-                    });
+                            return { proposals: proposals, userVotes: prevState.userVotes };
+                        });
+                        break;
                 }
             });
         }
